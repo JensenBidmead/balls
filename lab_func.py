@@ -16,6 +16,9 @@ def Get_MS():
 	M[0,0:3] = np.array([0,-1,0])
 	M[1,0:3] = np.array([0,0,1])
 	M[2,0:3] = np.array([-1,0,0])
+	M[0,0:3] = np.array([0,-1,0])
+	M[1,0:3] = np.array([0,0,-1])
+	M[2,0:3] = np.array([1,0,0])
 	M[2,3] = 152 + 53.5 + 10
 	M[1,3] = 223 + 59 + 150
 	M[0,3] = 542 -150
@@ -61,8 +64,11 @@ def lab_fk(theta1, theta2, theta3, theta4, theta5, theta6):
 		
 		matrixS[i] = expm(matrixS[i])
 	T = M
+	#print(M)
 	for i in range(0,6) :
+		print(matrixS[5-i])
 		T = matrixS[5-i]@T 
+		print(str(T) + "\n")
 	# ==============================================================#
 
 	print(str(T) + "\n")
@@ -82,13 +88,34 @@ Function that calculates an elbow up Inverse Kinematic solution for the UR3
 """
 def lab_invk(xWgrip, yWgrip, zWgrip, yaw_WgripDegree):
 	# =================== Your code starts here ====================#
-	
 	theta1 = 0.0
 	theta2 = 0.0
 	theta3 = 0.0
 	theta4 = 0.0
 	theta5 = 0.0
 	theta6 = 0.0
+	yaw_WgripDegree = yaw_WgripDegree
+	g = np.array([xWgrip + 150, yWgrip - 150,zWgrip - 10])
+	print(g)
+	center = g - np.array([53.5*np.cos(yaw_WgripDegree/180*np.pi), 53.5*np.sin(yaw_WgripDegree/180*np.pi),0])
+	print(center)
+	theta1 = np.arctan2(center[1],center[0]) - np.arcsin((27 + 104)/np.sqrt(center[1]**2 + center[0]**2))
 	
+	end = center + np.array([np.sqrt((27 + 104)**2 + 85**2)*np.sin(theta1-np.arctan(85/(27+104))),-np.sqrt((27 + 104)**2 + 85**2)*np.cos(theta1-np.arctan(85/(27+104))), 59 +92])
+	print(end)
+	d2 = end[0]**2 + end[1]**2
+	theta3 = np.pi - np.arccos((d2 + (end[2]-152)**2 - 244**2 -213**2)/(-2*213*244))
+	theta2 = -np.arctan2(end[2]-152,np.sqrt(d2)) - np.arccos((213**2 - 244**2 - (d2 + (end[2]-152)**2 ))/(-2*244*np.sqrt(d2 + (end[2]-152)**2)))
+	theta4 = -theta2 - theta3
+	theta6 = np.pi/2 + theta1 - yaw_WgripDegree/180*np.pi
+	theta5 = -np.pi/2
+
+
+	print(theta1 * 180/np.pi)
+	print(theta2 * 180/np.pi)
+	print(theta3 * 180/np.pi)
+	print(theta4 * 180/np.pi)
+	print(theta5 * 180/np.pi)
+	print(theta6 * 180/np.pi)
 	# ==============================================================#
 	return lab_fk(theta1, theta2, theta3, theta4, theta5, theta6)
